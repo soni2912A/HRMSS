@@ -85,7 +85,7 @@ const ShortlistTable = () => {
                         </table>
                     </div>
 
-                    {/* Mobile Grid */}
+                
                     <div className="md:hidden p-4 space-y-4">
                         {data.map((row) => (
                             <div key={row.id} className="bg-slate-50 rounded-2xl p-5 border border-slate-100 shadow-sm relative overflow-hidden">
@@ -105,7 +105,7 @@ const ShortlistTable = () => {
                 </div>
             </div>
 
-            {/* Simple Modal */}
+       
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white p-8 rounded-[2rem] w-full max-w-md shadow-2xl">
@@ -136,5 +136,5 @@ const ShortlistTable = () => {
     );
 };
 
-// --- ADDED THIS LINE ---
+
 export default ShortlistTable;

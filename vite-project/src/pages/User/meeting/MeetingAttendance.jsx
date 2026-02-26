@@ -76,7 +76,7 @@ const MeetingAttendees = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  /* 🔍 Search */
+ 
   const filteredData = useMemo(() => {
     return data.filter((item) =>
       `${item.name} ${item.meeting} ${item.rsvp}`
@@ -85,7 +85,6 @@ const MeetingAttendees = () => {
     );
   }, [search, data]);
 
-  /* 📄 Pagination */
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
   const pageData = filteredData.slice(
     (page - 1) * ITEMS_PER_PAGE,
@@ -112,7 +111,6 @@ const MeetingAttendees = () => {
 
         <h1 className="text-2xl font-bold mb-4">Meeting Attendees</h1>
 
-        {/* 🔍 Search */}
         <input
           placeholder="Search..."
           value={search}
@@ -123,7 +121,6 @@ const MeetingAttendees = () => {
           className="border rounded-lg px-3 py-2 mb-4 w-full max-w-sm"
         />
 
-        {/* 📋 Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-600">
@@ -188,7 +185,7 @@ const MeetingAttendees = () => {
           </table>
         </div>
 
-        {/* 📄 Pagination */}
+       
         <div className="flex justify-between items-center mt-4 text-sm">
           <span>
             Showing {(page - 1) * ITEMS_PER_PAGE + 1} to{" "}

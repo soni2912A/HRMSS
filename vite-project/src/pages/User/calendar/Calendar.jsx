@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { leaveAPI, meetingAPI, attendanceAPI } from "../../../services/api";
 import { Loader2, Plus, Pencil, Trash2, StickyNote, X, Save } from "lucide-react";
 
-// ── Personal notes localStorage key ──────────────────────────────────────────
+
 const NOTES_KEY = "calendar_personal_notes";
 
 const loadNotes = () => {
@@ -15,7 +15,7 @@ const loadNotes = () => {
 };
 const saveNotes = (notes) => localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
 
-// ── Color palette for personal notes ─────────────────────────────────────────
+
 const NOTE_COLORS = [
   { bg: "#8b5cf6", label: "Purple" },
   { bg: "#ec4899", label: "Pink" },
@@ -25,18 +25,16 @@ const NOTE_COLORS = [
 ];
 
 const CalendarPage = () => {
-  const [apiEvents, setApiEvents] = useState([]);  // holidays, meetings, leaves, attendance
-  const [notes, setNotes] = useState(loadNotes); // personal notes from localStorage
+  const [apiEvents, setApiEvents] = useState([]);  
+  const [notes, setNotes] = useState(loadNotes); 
   const [loading, setLoading] = useState(true);
 
-  // ── View-event modal (for api events) ────────────────────────────────────
-  const [viewModal, setViewModal] = useState(null); // { title, date, type, description, location }
+  
+  const [viewModal, setViewModal] = useState(null); 
 
-  // ── Note form modal (add / edit personal note) ────────────────────────────
+
   const [noteForm, setNoteForm] = useState(null);
-  // noteForm = { id?, date, title, content, color } or null
-
-  // ── Fetch API events ──────────────────────────────────────────────────────
+  
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -88,7 +86,7 @@ const CalendarPage = () => {
     fetchAll();
   }, []);
 
-  // ── Build note events from state ──────────────────────────────────────────
+ 
   const noteEvents = notes.map(n => ({
     id: `note-${n.id}`,
     title: `📌 ${n.title}`,
@@ -101,19 +99,18 @@ const CalendarPage = () => {
 
   const allEvents = [...apiEvents, ...noteEvents];
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
 
-  // Click on date → open add-note form
+ 
   const handleDateClick = (info) => {
     setNoteForm({ date: info.dateStr, title: "", content: "", color: NOTE_COLORS[0].bg });
   };
 
-  // Click on event → if note: edit form, else: view modal
+  
   const handleEventClick = (info) => {
     const props = info.event.extendedProps;
     if (props.isNote) {
       const note = notes.find(n => n.id === props.noteId);
-      if (note) setNoteForm({ ...note }); // edit mode (has id)
+      if (note) setNoteForm({ ...note }); 
     } else {
       setViewModal({
         title: info.event.title,
@@ -125,15 +122,14 @@ const CalendarPage = () => {
     }
   };
 
-  // Save note (add or edit)
   const handleSaveNote = () => {
     if (!noteForm.title.trim()) return;
     let updated;
     if (noteForm.id) {
-      // Edit existing
+    
       updated = notes.map(n => n.id === noteForm.id ? { ...noteForm } : n);
     } else {
-      // Add new
+    
       updated = [...notes, { ...noteForm, id: Date.now() }];
     }
     setNotes(updated);
@@ -141,7 +137,6 @@ const CalendarPage = () => {
     setNoteForm(null);
   };
 
-  // Delete note
   const handleDeleteNote = (id) => {
     const updated = notes.filter(n => n.id !== id);
     setNotes(updated);
@@ -159,7 +154,6 @@ const CalendarPage = () => {
     <div className="min-h-screen bg-[#f8fafa] p-4 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-5">
 
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-black text-[#0f2e2e]">My Calendar</h1>
@@ -172,7 +166,7 @@ const CalendarPage = () => {
           </button>
         </div>
 
-        {/* Legend */}
+       
         <div className="flex flex-wrap gap-2">
           {[
             { color: "#16a34a", label: "Holidays" },
@@ -189,7 +183,7 @@ const CalendarPage = () => {
           ))}
         </div>
 
-        {/* Calendar */}
+        
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-4">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -205,7 +199,7 @@ const CalendarPage = () => {
           />
         </div>
 
-        {/* Notes list */}
+    
         {notes.length > 0 && (
           <div>
             <h2 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-3">
@@ -239,7 +233,7 @@ const CalendarPage = () => {
         )}
       </div>
 
-      {/* ── VIEW MODAL (for API events) ── */}
+    
       {viewModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
@@ -267,7 +261,7 @@ const CalendarPage = () => {
         </div>
       )}
 
-      {/* ── NOTE FORM MODAL (add / edit personal note) ── */}
+      
       {noteForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
@@ -282,7 +276,7 @@ const CalendarPage = () => {
             </div>
 
             <div className="space-y-4">
-              {/* Date */}
+             
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Date</label>
                 <input type="date" value={noteForm.date}
@@ -290,7 +284,7 @@ const CalendarPage = () => {
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ring-purple-200" />
               </div>
 
-              {/* Title */}
+           
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Title *</label>
                 <input placeholder="Note title..." value={noteForm.title}
@@ -298,7 +292,6 @@ const CalendarPage = () => {
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ring-purple-200" />
               </div>
 
-              {/* Content */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Note / Description</label>
                 <textarea placeholder="Write your note here..." value={noteForm.content} rows={4}
@@ -306,7 +299,7 @@ const CalendarPage = () => {
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ring-purple-200 resize-none" />
               </div>
 
-              {/* Color picker */}
+             
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Color</label>
                 <div className="flex gap-2">
@@ -319,7 +312,7 @@ const CalendarPage = () => {
                 </div>
               </div>
 
-              {/* Buttons */}
+           
               <div className="flex gap-3 pt-2">
                 {noteForm.id && (
                   <button onClick={() => handleDeleteNote(noteForm.id)}

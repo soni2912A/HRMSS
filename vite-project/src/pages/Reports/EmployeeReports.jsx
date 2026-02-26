@@ -1,170 +1,4 @@
-// import React, { useState } from "react";
 
-// const EmployeeReport = () => {
-//     const [employees] = useState([
-//         { id: "000001", name: "Honorato Curry", email: "test@mail.com", mobile: "+1 873 591 1817", joined: "1986-12-07", status: "Active" },
-//         { id: "000002", name: "Maisha Gonzales", email: "hr@mail.com", mobile: "+1 302 141 4066", joined: "2024-04-28", status: "Active" },
-//         { id: "000003", name: "Arjun Mehta", email: "arjun@mail.com", mobile: "+91 98765 43210", joined: "2025-01-15", status: "Probation" },
-//         { id: "000004", name: "Sarah Jenkins", email: "sarah@mail.com", mobile: "+44 20 7946 0958", joined: "2023-11-20", status: "Notice" },
-//     ]);
-
-//     const [searchTerm, setSearchTerm] = useState("");
-
-//     const filteredEmployees = employees.filter(emp =>
-//         emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//         emp.id.includes(searchTerm)
-//     );
-
-//     const getInitials = (name) =>
-//         name.split(" ").map(n => n[0]).join("").toUpperCase();
-
-//     return (
-//         <div className="p-4 md:p-8 bg-slate-50 min-h-screen">
-//             <div className="max-w-7xl mx-auto">
-
-//                 {/* Header */}
-//                 <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-//                     <div>
-//                         <h1 className="text-xl md:text-2xl font-bold text-slate-800">
-//                             Employee Directory
-//                         </h1>
-//                         <p className="text-slate-500 text-sm">
-//                             Manage and view all registered employees
-//                         </p>
-//                     </div>
-
-//                     <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-//                         <input
-//                             type="text"
-//                             placeholder="Search employees..."
-//                             className="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 w-full sm:w-64"
-//                             value={searchTerm}
-//                             onChange={(e) => setSearchTerm(e.target.value)}
-//                         />
-//                         <button className="bg-emerald-600 text-white px-5 py-2 rounded-xl text-sm font-semibold">
-//                             Filter
-//                         </button>
-//                     </div>
-//                 </div>
-
-//                 {/* 🔥 MOBILE VIEW (STACKED CARDS) */}
-//                 <div className="md:hidden space-y-4">
-//                     {filteredEmployees.length > 0 ? (
-//                         filteredEmployees.map((emp, index) => (
-//                             <div
-//                                 key={emp.id}
-//                                 className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3"
-//                             >
-//                                 <div className="flex items-center gap-3">
-//                                     <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
-//                                         {getInitials(emp.name)}
-//                                     </div>
-//                                     <div>
-//                                         <p className="font-bold text-slate-800">{emp.name}</p>
-//                                         <p className="text-xs text-slate-400 font-mono">
-//                                             #{emp.id}
-//                                         </p>
-//                                     </div>
-//                                 </div>
-
-//                                 <div className="text-sm space-y-1">
-//                                     <p><span className="text-slate-500">Email:</span> {emp.email}</p>
-//                                     <p><span className="text-slate-500">Mobile:</span> {emp.mobile}</p>
-//                                     <p><span className="text-slate-500">Joined:</span> {new Date(emp.joined).toLocaleDateString("en-GB")}</p>
-//                                 </div>
-
-//                                 <div className="flex justify-between items-center">
-//                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${emp.status === "Active"
-//                                             ? "bg-green-100 text-green-600"
-//                                             : emp.status === "Probation"
-//                                                 ? "bg-blue-100 text-blue-600"
-//                                                 : "bg-orange-100 text-orange-600"
-//                                         }`}>
-//                                         {emp.status}
-//                                     </span>
-
-//                                     <button className="text-emerald-600 text-sm font-semibold">
-//                                         Details →
-//                                     </button>
-//                                 </div>
-//                             </div>
-//                         ))
-//                     ) : (
-//                         <div className="text-center py-10 text-slate-400">
-//                             No employees found.
-//                         </div>
-//                     )}
-//                 </div>
-
-//                 {/* 💻 DESKTOP TABLE */}
-//                 <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-//                     <table className="w-full text-left border-collapse">
-//                         <thead>
-//                             <tr className="bg-slate-50 text-xs uppercase text-slate-500 font-bold">
-//                                 <th className="p-4">Sl</th>
-//                                 <th className="p-4">Employee</th>
-//                                 <th className="p-4">Contact Info</th>
-//                                 <th className="p-4 text-center">Joining Date</th>
-//                                 <th className="p-4 text-center">Status</th>
-//                                 <th className="p-4 text-right">Action</th>
-//                             </tr>
-//                         </thead>
-//                         <tbody className="divide-y divide-slate-100">
-//                             {filteredEmployees.map((emp, index) => (
-//                                 <tr key={emp.id} className="hover:bg-slate-50">
-//                                     <td className="p-4 text-sm">{index + 1}</td>
-//                                     <td className="p-4">
-//                                         <div className="flex items-center gap-3">
-//                                             <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-//                                                 {getInitials(emp.name)}
-//                                             </div>
-//                                             <div>
-//                                                 <div className="font-bold text-slate-800">{emp.name}</div>
-//                                                 <div className="text-xs text-slate-400 font-mono">#{emp.id}</div>
-//                                             </div>
-//                                         </div>
-//                                     </td>
-//                                     <td className="p-4 text-sm">
-//                                         <div>{emp.email}</div>
-//                                         <div className="text-xs text-slate-400">{emp.mobile}</div>
-//                                     </td>
-//                                     <td className="p-4 text-center text-sm">
-//                                         {new Date(emp.joined).toLocaleDateString("en-GB")}
-//                                     </td>
-//                                     <td className="p-4 text-center">
-//                                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${emp.status === "Active"
-//                                                 ? "bg-green-100 text-green-600"
-//                                                 : emp.status === "Probation"
-//                                                     ? "bg-blue-100 text-blue-600"
-//                                                     : "bg-orange-100 text-orange-600"
-//                                             }`}>
-//                                             {emp.status}
-//                                         </span>
-//                                     </td>
-//                                     <td className="p-4 text-right">
-//                                         <button className="text-emerald-600 font-semibold text-sm">
-//                                             View
-//                                         </button>
-//                                     </td>
-//                                 </tr>
-//                             ))}
-//                         </tbody>
-//                     </table>
-
-//                     {/* Footer */}
-//                     <div className="p-4 bg-slate-50 border-t flex justify-between items-center">
-//                         <span className="text-sm text-slate-500">
-//                             Showing {filteredEmployees.length} employees
-//                         </span>
-//                     </div>
-//                 </div>
-
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default EmployeeReport;
 
 
 
@@ -203,7 +37,7 @@ const EmployeeReport = () => {
         <div className="animate-in fade-in duration-500">
             <div className="bg-white shadow-sm rounded-[32px] border border-slate-100 overflow-hidden">
 
-                {/* --- HEADER SECTION --- */}
+               
                 <div className="p-8 border-b border-slate-50 bg-slate-50/20 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
                         <h2 className="text-2xl font-black text-slate-800 tracking-tight">Employee Directory</h2>
@@ -227,10 +61,9 @@ const EmployeeReport = () => {
                 </div>
 
                 <div className="p-2 md:p-8">
-                    {/* --- TABLE CONTAINER --- */}
                     <div className="border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
 
-                        {/* 💻 DESKTOP TABLE */}
+                       
                         <div className="hidden md:block">
                             <table className="w-full text-left">
                                 <thead className="bg-slate-50/50 border-b border-slate-50">
@@ -279,7 +112,7 @@ const EmployeeReport = () => {
                             </table>
                         </div>
 
-                        {/* 📱 MOBILE CARDS */}
+                        
                         <div className="md:hidden divide-y divide-slate-50">
                             {filteredEmployees.length > 0 ? (
                                 filteredEmployees.map((emp) => (
@@ -322,7 +155,7 @@ const EmployeeReport = () => {
                     </div>
                 </div>
 
-                {/* --- FOOTER --- */}
+               
                 <div className="p-6 bg-slate-50/50 border-t border-slate-50 flex justify-center">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         Total Staff Strength: {filteredEmployees.length}

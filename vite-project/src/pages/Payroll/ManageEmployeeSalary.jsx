@@ -31,7 +31,7 @@ export function ManageEmployeeSalary() {
     return (
         <section className="bg-[#f1f5f4] min-h-screen p-4 md:p-8 text-slate-700">
             <div className="max-w-7xl mx-auto">
-                {/* TABS */}
+               
                 <div className="flex flex-wrap gap-2 mb-8 bg-white/50 p-1.5 rounded-2xl w-fit border border-slate-200">
                     <button onClick={() => navigate("/Payroll/salary-advance")} className="px-5 py-2 rounded-xl text-sm font-semibold hover:bg-white transition-all">Salary Advance</button>
                     <button onClick={() => navigate("/Payroll/salary-generate")} className="px-5 py-2 rounded-xl text-sm font-semibold hover:bg-white transition-all">Salary Generate</button>

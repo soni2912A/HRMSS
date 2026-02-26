@@ -89,7 +89,6 @@ export default function SalaryAdvance() {
                         ))}
                     </div>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="p-6 border-t border-slate-50 flex justify-center gap-2">
                             {Array.from({ length: totalPages }, (_, i) => (
@@ -99,7 +98,6 @@ export default function SalaryAdvance() {
                     )}
                 </div>
 
-                {/* MODAL */}
                 {showModal && (
                     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                         <div className="bg-white p-8 rounded-[2rem] shadow-2xl w-full max-w-md border border-slate-100 animate-in fade-in zoom-in duration-200">

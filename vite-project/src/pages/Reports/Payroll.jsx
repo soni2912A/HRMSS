@@ -1,150 +1,4 @@
-// import React, { useState } from "react";
-// import { Download, Calculator, Landmark, IndianRupee, TrendingUp, AlertCircle } from "lucide-react";
 
-// const Payroll = () => {
-//     const [month, setMonth] = useState("2026-02");
-//     const [payrollData, setPayrollData] = useState([]);
-//     const [isLoading, setIsLoading] = useState(false);
-
-//     const mockPayroll = [
-//         { id: "EMP001", name: "Honorato Curry", basic: 50000, allowance: 5000, deductions: 2000 },
-//         { id: "EMP002", name: "Maisha Gonzales", basic: 65000, allowance: 8000, deductions: 3500 },
-//         { id: "EMP003", name: "Arjun Mehta", basic: 45000, allowance: 4000, deductions: 1500 },
-//     ];
-
-//     const handleGenerate = () => {
-//         if (!month) return alert("Please select a month first!");
-//         setIsLoading(true);
-//         setTimeout(() => {
-//             setPayrollData(mockPayroll);
-//             setIsLoading(false);
-//         }, 800);
-//     };
-
-//     const formatCurrency = (num) =>
-//         new Intl.NumberFormat("en-IN", {
-//             style: "currency",
-//             currency: "INR",
-//             maximumFractionDigits: 0,
-//         }).format(num);
-
-//     const totalPayout = payrollData.reduce(
-//         (acc, curr) => acc + (curr.basic + curr.allowance - curr.deductions),
-//         0
-//     );
-
-//     return (
-//         <div className="p-4 md:p-8 bg-[#f8fafc] min-h-screen">
-//             <div className="max-w-7xl mx-auto space-y-6">
-
-//                 {/* Header */}
-//                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-//                     <div>
-//                         <h2 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-3">
-//                             <Landmark className="text-emerald-600" />
-//                             Payroll Engine
-//                         </h2>
-//                         <p className="text-slate-500 text-sm">Monthly salary processing</p>
-//                     </div>
-//                 </div>
-
-//                 {/* Filter + Summary */}
-//                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-//                     <div className="lg:col-span-2 bg-white p-6 rounded-3xl border shadow-sm flex flex-col md:flex-row gap-4">
-//                         <input
-//                             type="month"
-//                             value={month}
-//                             onChange={(e) => setMonth(e.target.value)}
-//                             className="flex-1 border p-3 rounded-xl"
-//                         />
-//                         <button
-//                             onClick={handleGenerate}
-//                             disabled={isLoading}
-//                             className="bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold"
-//                         >
-//                             {isLoading ? "Calculating..." : "Run Payroll"}
-//                         </button>
-//                     </div>
-
-//                     <div className="bg-indigo-600 p-6 rounded-3xl text-white">
-//                         <p className="text-xs uppercase font-bold opacity-80">Total Net Payout</p>
-//                         <h3 className="text-2xl font-black mt-2">
-//                             {formatCurrency(totalPayout || 0)}
-//                         </h3>
-//                         <p className="text-xs mt-2">
-//                             <AlertCircle size={12} className="inline mr-1" />
-//                             {payrollData.length} Employees
-//                         </p>
-//                     </div>
-//                 </div>
-
-//                 {/* ================= MOBILE VIEW ================= */}
-//                 <div className="block md:hidden space-y-4">
-//                     {payrollData.length > 0 ? (
-//                         payrollData.map((emp) => {
-//                             const net = emp.basic + emp.allowance - emp.deductions;
-//                             return (
-//                                 <div key={emp.id} className="bg-white rounded-3xl p-5 border shadow-sm space-y-3">
-
-//                                     <div>
-//                                         <p className="font-bold text-slate-800">{emp.name}</p>
-//                                         <p className="text-xs text-slate-400">{emp.id}</p>
-//                                     </div>
-
-//                                     <div className="grid grid-cols-2 gap-2 text-sm">
-//                                         <div>Basic: <b>{formatCurrency(emp.basic)}</b></div>
-//                                         <div>Allowance: <b className="text-blue-600">+{formatCurrency(emp.allowance)}</b></div>
-//                                         <div>Deduction: <b className="text-rose-600">-{formatCurrency(emp.deductions)}</b></div>
-//                                         <div>Net: <b className="text-emerald-600">{formatCurrency(net)}</b></div>
-//                                     </div>
-
-//                                 </div>
-//                             );
-//                         })
-//                     ) : (
-//                         <div className="text-center py-10 text-slate-500 font-bold">
-//                             Run Payroll to generate salary data
-//                         </div>
-//                     )}
-//                 </div>
-
-//                 {/* ================= DESKTOP TABLE ================= */}
-//                 <div className="hidden md:block bg-white rounded-3xl shadow-sm border">
-//                     <table className="w-full">
-//                         <thead className="bg-slate-50 text-xs font-bold text-slate-400 uppercase">
-//                             <tr>
-//                                 <th className="p-6 text-left">Employee</th>
-//                                 <th className="p-6 text-right">Basic</th>
-//                                 <th className="p-6 text-right">Allowance</th>
-//                                 <th className="p-6 text-right">Deduction</th>
-//                                 <th className="p-6 text-right">Net</th>
-//                             </tr>
-//                         </thead>
-//                         <tbody className="divide-y">
-//                             {payrollData.map((emp) => {
-//                                 const net = emp.basic + emp.allowance - emp.deductions;
-//                                 return (
-//                                     <tr key={emp.id}>
-//                                         <td className="p-6 font-bold">{emp.name}</td>
-//                                         <td className="p-6 text-right">{formatCurrency(emp.basic)}</td>
-//                                         <td className="p-6 text-right text-blue-600">+{formatCurrency(emp.allowance)}</td>
-//                                         <td className="p-6 text-right text-rose-600">-{formatCurrency(emp.deductions)}</td>
-//                                         <td className="p-6 text-right font-bold text-emerald-600">
-//                                             {formatCurrency(net)}
-//                                         </td>
-//                                     </tr>
-//                                 );
-//                             })}
-//                         </tbody>
-//                     </table>
-//                 </div>
-
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default Payroll;
 
 
 
@@ -188,7 +42,6 @@ const Payroll = () => {
         <div className="p-6 md:p-10 bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto space-y-8">
 
-                {/* Glassmorphic Header */}
                 <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-5">
                         <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center border border-emerald-100">
@@ -217,7 +70,6 @@ const Payroll = () => {
                     </div>
                 </div>
 
-                {/* Summary Stat Card */}
                 {payrollData.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="md:col-span-2 bg-indigo-600 rounded-[2rem] p-8 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl shadow-indigo-200">
@@ -241,7 +93,7 @@ const Payroll = () => {
                     </div>
                 )}
 
-                {/* Payroll Table (Desktop) */}
+               
                 <div className="hidden md:block bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-200 overflow-hidden">
                     <table className="w-full">
                         <thead className="bg-slate-50/80 border-b border-slate-100">
@@ -277,7 +129,7 @@ const Payroll = () => {
                     </table>
                 </div>
 
-                {/* Mobile View (Optional: simplified) */}
+               
                 {payrollData.length === 0 && !isLoading && (
                     <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-20 flex flex-col items-center justify-center text-center">
                         <div className="p-5 bg-slate-50 rounded-3xl mb-4">

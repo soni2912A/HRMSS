@@ -45,7 +45,7 @@ const CandidateSelection = () => {
         <div className="p-4 md:p-8 bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto space-y-6">
 
-                {/* Header Card */}
+               
                 <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-5">
                         <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 border border-indigo-100">
@@ -61,7 +61,7 @@ const CandidateSelection = () => {
                     </button>
                 </div>
 
-                {/* Toolbar */}
+               
                 <div className="bg-white rounded-[1.5rem] p-4 border border-slate-200 flex flex-col md:flex-row justify-between gap-4">
                     <div className="flex gap-2">
                         <button className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-tighter flex items-center gap-2">
@@ -83,7 +83,7 @@ const CandidateSelection = () => {
                     </div>
                 </div>
 
-                {/* Desktop Table */}
+              
                 <div className="hidden md:block bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50/50 border-b border-slate-100">
@@ -121,7 +121,7 @@ const CandidateSelection = () => {
                     </table>
                 </div>
 
-                {/* Mobile View */}
+                
                 <div className="md:hidden space-y-4">
                     {filteredData.map((item) => (
                         <div key={item.id} className="bg-white border border-slate-200 rounded-[1.5rem] p-6 shadow-sm">
@@ -151,7 +151,7 @@ const CandidateSelection = () => {
                 </div>
             </div>
 
-            {/* Modal */}
+        
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-[2rem] w-full max-w-xl shadow-2xl overflow-hidden">

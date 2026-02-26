@@ -10,11 +10,11 @@ const InterviewTable = () => {
     const [marks, setMarks] = useState({ viva: "", written: "", mcq: "" });
     const [status, setStatus] = useState("Pending");
 
-    // Logic: Calculate total safely
+   
     const total = Object.values(marks).reduce((acc, curr) => acc + (parseFloat(curr) || 0), 0);
 
     const handleInputChange = (field, value) => {
-        // Logic: Prevent negative numbers or excessively high numbers
+       
         if (value < 0) return;
         setMarks(prev => ({ ...prev, [field]: value }));
     };
@@ -28,7 +28,7 @@ const InterviewTable = () => {
         setStatus("Saved");
         console.log("Saving Assessment:", { ...marks, total, timestamp: new Date() });
 
-        // Reset status after 3 seconds
+       
         setTimeout(() => setStatus("Pending"), 3000);
     };
 
@@ -45,7 +45,6 @@ const InterviewTable = () => {
                 <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
                     <div className="p-6 md:p-10 space-y-8">
 
-                        {/* Responsive Input Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {[
                                 { id: 'viva', label: 'Viva Marks' },
@@ -71,7 +70,7 @@ const InterviewTable = () => {
                             ))}
                         </div>
 
-                        {/* Total Display Section */}
+                     
                         <div className="relative group">
                             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
                             <div className="relative bg-emerald-50 p-6 md:p-8 rounded-[1.5rem] border border-emerald-100 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -85,7 +84,7 @@ const InterviewTable = () => {
                             </div>
                         </div>
 
-                        {/* Save Button */}
+                       
                         <button
                             onClick={handleSave}
                             disabled={status === "Saved"}

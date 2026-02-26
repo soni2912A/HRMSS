@@ -28,7 +28,6 @@ const CandidateTable = () => {
 
     return (
         <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans">
-            {/* Header */}
             <div className="max-w-6xl mx-auto mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 className="text-3xl font-black text-slate-800 tracking-tight">Candidate Directory</h2>
@@ -48,7 +47,6 @@ const CandidateTable = () => {
             </div>
 
             <div className="max-w-6xl mx-auto bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-                {/* Search Bar */}
                 <div className="p-6 border-b border-slate-100 bg-slate-50/50">
                     <div className="relative w-full md:w-96">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -61,7 +59,7 @@ const CandidateTable = () => {
                     </div>
                 </div>
 
-                {/* Desktop Table */}
+                
                 <div className="hidden md:block">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50/80">
@@ -103,7 +101,7 @@ const CandidateTable = () => {
                     </table>
                 </div>
 
-                {/* Mobile Grid */}
+            
                 <div className="md:hidden grid grid-cols-1 gap-4 p-4">
                     {filtered.map((item, index) => (
                         <div key={item.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-5 relative">
@@ -130,7 +128,7 @@ const CandidateTable = () => {
                 </div>
             </div>
 
-            {/* Modal */}
+        
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">

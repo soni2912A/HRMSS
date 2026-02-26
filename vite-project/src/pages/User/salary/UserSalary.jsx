@@ -8,7 +8,7 @@ const UserSalary = () => {
     const [payrolls, setPayrolls] = useState([]);
     const [advances, setAdvances] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState("salary"); // "salary" | "advance"
+    const [tab, setTab] = useState("salary"); 
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -37,7 +37,7 @@ const UserSalary = () => {
                     <p className="text-gray-400 text-sm mt-1">Salary slips and advance requests</p>
                 </div>
 
-                {/* Summary cards */}
+              
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Received</p>
@@ -56,7 +56,7 @@ const UserSalary = () => {
                     </div>
                 </div>
 
-                {/* Tabs */}
+             
                 <div className="flex gap-2">
                     {["salary", "advance"].map(t => (
                         <button key={t} onClick={() => setTab(t)}
@@ -130,7 +130,7 @@ const UserSalary = () => {
                         ))}
                     </div>
                 ) : (
-                    /* Advances tab */
+                  
                     <div className="space-y-3">
                         {advances.length === 0 ? (
                             <div className="bg-white rounded-2xl p-16 text-center shadow-sm border border-gray-100">
