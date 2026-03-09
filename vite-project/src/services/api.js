@@ -81,6 +81,15 @@ export const awardAPI = {
   delete: (id) => request("DELETE", `/awards/${id}`),
 };
 
+// ── NEW ──────────────────────────────────────────────────────────────────────
+export const performanceAPI = {
+  getAll: () => request("GET", "/performance"),
+  create: (body) => request("POST", "/performance", body),
+  update: (id, body) => request("PUT", `/performance/${id}`, body),
+  delete: (id) => request("DELETE", `/performance/${id}`),
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const payrollAPI = {
   getAll: (params = "") => request("GET", `/payroll${params}`),
   create: (body) => request("POST", "/payroll", body),
