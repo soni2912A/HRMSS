@@ -100,3 +100,10 @@ const Login = () => {
 };
 
 export default Login;
+
+// export const authAPI = {
+//   login: (body) => request("POST", "/auth/login", body),
+//   register: (body) => request("POST", "/auth/register", body),
+//   getMe: () => request("GET", "/auth/me"),
+//   changePassword: (body) => request("PUT", "/auth/change-password", body),
+// };

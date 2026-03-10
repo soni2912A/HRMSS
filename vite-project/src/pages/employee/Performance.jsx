@@ -5,18 +5,18 @@ import { employeeAPI, performanceAPI } from "../../services/api";
 const ITEMS_PER_PAGE = 5;
 
 const EmployeePerformance = () => {
-    const [data, setData]             = useState([]);
-    const [employees, setEmployees]   = useState([]);
-    const [loading, setLoading]       = useState(true);
-    const [showForm, setShowForm]     = useState(false);
-    const [editId, setEditId]         = useState(null);
-    const [search, setSearch]         = useState("");
+    const [data, setData]               = useState([]);
+    const [employees, setEmployees]     = useState([]);
+    const [loading, setLoading]         = useState(true);
+    const [empLoading, setEmpLoading]   = useState(true);  // ← separate loader for dropdown
+    const [showForm, setShowForm]       = useState(false);
+    const [editId, setEditId]           = useState(null);
+    const [search, setSearch]           = useState("");
     const [currentPage, setCurrentPage] = useState(1);
 
     const emptyForm = { employeeId: "", employeeName: "", score: "", date: "" };
     const [form, setForm] = useState(emptyForm);
 
-    /* ── Fetch employees + performance records on mount ── */
     useEffect(() => { fetchAll(); }, []);
 
     const fetchAll = async () => {
@@ -25,22 +25,25 @@ const EmployeePerformance = () => {
                 employeeAPI.getAll(),
                 performanceAPI.getAll(),
             ]);
-            setEmployees(empRes.data.filter(e => e.status === "Active"));
-            setData(perfRes.data);
+
+            // Backend returns { data: [...] } — confirmed from EmployeeList.jsx
+            setEmployees(empRes.data || []);
+            setData(perfRes.data || []);
         } catch (err) {
             console.error("Failed to load data:", err);
         } finally {
             setLoading(false);
+            setEmpLoading(false);
         }
     };
 
     /* ── When admin picks an employee from dropdown ── */
     const handleEmpSelect = (e) => {
-        const emp = employees.find(emp => emp._id === e.target.value);
+        const emp = employees.find((emp) => emp._id === e.target.value);
         setForm({
             ...form,
-            employeeId:   emp?._id    || "",
-            employeeName: emp?.name   || "",
+            employeeId:   emp?._id  || "",
+            employeeName: emp?.name || "",
         });
     };
 
@@ -60,10 +63,10 @@ const EmployeePerformance = () => {
 
             if (editId) {
                 const res = await performanceAPI.update(editId, payload);
-                setData(prev => prev.map(d => d._id === editId ? res.data : d));
+                setData((prev) => prev.map((d) => d._id === editId ? res.data : d));
             } else {
                 const res = await performanceAPI.create(payload);
-                setData(prev => [res.data, ...prev]);
+                setData((prev) => [res.data, ...prev]);
             }
 
             setForm(emptyForm);
@@ -89,7 +92,7 @@ const EmployeePerformance = () => {
         if (!window.confirm("Delete this performance record?")) return;
         try {
             await performanceAPI.delete(id);
-            setData(prev => prev.filter(d => d._id !== id));
+            setData((prev) => prev.filter((d) => d._id !== id));
         } catch (err) { alert(err.message); }
     };
 
@@ -97,18 +100,17 @@ const EmployeePerformance = () => {
 
     /* ── Filter + paginate ── */
     const filteredData = useMemo(() =>
-        data.filter(item =>
+        data.filter((item) =>
             (item.employeeName || item.employee?.name || "")
                 .toLowerCase().includes(search.toLowerCase())
         ),
         [data, search]
     );
 
-    const totalPages   = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
-    const start        = (currentPage - 1) * ITEMS_PER_PAGE;
+    const totalPages    = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+    const start         = (currentPage - 1) * ITEMS_PER_PAGE;
     const paginatedData = filteredData.slice(start, start + ITEMS_PER_PAGE);
 
-    /* ── Score colour ── */
     const scoreColor = (s) =>
         s >= 400 ? "text-emerald-600" :
         s >= 200 ? "text-blue-600"    :
@@ -126,7 +128,7 @@ const EmployeePerformance = () => {
         <div className="bg-[#f8fafc] min-h-screen p-3 sm:p-5 md:p-8 pt-20 md:pt-24">
             <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
 
-                {/* ── Header ── */}
+                {/* Header */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2.5">
@@ -149,32 +151,30 @@ const EmployeePerformance = () => {
                     </button>
                 </div>
 
-                {/* ── Search ── */}
+                {/* Search */}
                 <div className="relative w-full sm:max-w-sm sm:ml-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                     <input
                         placeholder="Search employee..."
                         value={search}
-                        onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+                        onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
                         className="w-full bg-white border border-slate-200 pl-10 pr-4 py-2.5
                             rounded-2xl text-sm font-medium shadow-sm outline-none
                             focus:ring-4 ring-emerald-50 transition-all"
                     />
                 </div>
 
-                {/* ── Loading ── */}
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <Loader2 className="animate-spin text-emerald-600" size={36} />
                     </div>
                 ) : (
                     <>
-                        {/* ── Desktop table ── */}
-                        <div className="hidden md:block bg-white rounded-[2.5rem] shadow-sm
-                            border border-slate-100 overflow-hidden">
+                        {/* Desktop table */}
+                        <div className="hidden md:block bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
                             <table className="w-full text-left table-fixed">
                                 <colgroup>
-                                    <col style={{ width: "6%" }} />
+                                    <col style={{ width: "6%"  }} />
                                     <col style={{ width: "28%" }} />
                                     <col style={{ width: "30%" }} />
                                     <col style={{ width: "20%" }} />
@@ -235,8 +235,7 @@ const EmployeePerformance = () => {
                                                 {fmtDate(item.date)}
                                             </td>
                                             <td className="px-5 py-4">
-                                                <div className="flex justify-center gap-2
-                                                    opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button onClick={() => handleEdit(item)}
                                                         className="p-2 bg-white border border-slate-100 text-blue-600
                                                             rounded-xl hover:border-blue-200 transition-all">
@@ -255,16 +254,12 @@ const EmployeePerformance = () => {
                             </table>
                         </div>
 
-                        {/* ── Mobile cards ── */}
+                        {/* Mobile cards */}
                         <div className="md:hidden space-y-3">
                             {paginatedData.length === 0 ? (
-                                <p className="py-12 text-center text-slate-400 text-sm">
-                                    No performance records found
-                                </p>
+                                <p className="py-12 text-center text-slate-400 text-sm">No performance records found</p>
                             ) : paginatedData.map((item) => (
                                 <div key={item._id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-
-                                    {/* Top: avatar + name + actions */}
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center
                                             justify-center text-amber-700 font-black text-base flex-shrink-0">
@@ -291,8 +286,6 @@ const EmployeePerformance = () => {
                                             </button>
                                         </div>
                                     </div>
-
-                                    {/* Score bar */}
                                     <div className="flex items-center gap-3 mb-3">
                                         <span className={`text-sm font-black flex-shrink-0 ${scoreColor(item.score)}`}>
                                             {item.score} pts
@@ -304,8 +297,6 @@ const EmployeePerformance = () => {
                                             />
                                         </div>
                                     </div>
-
-                                    {/* Date */}
                                     <p className="text-xs text-slate-400 font-medium italic">
                                         📅 {fmtDate(item.date)}
                                     </p>
@@ -313,54 +304,39 @@ const EmployeePerformance = () => {
                             ))}
                         </div>
 
-                        {/* ── Pagination ── */}
+                        {/* Pagination */}
                         {totalPages > 0 && (
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-1">
                                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest order-2 sm:order-1">
                                     Page {currentPage} of {totalPages} · {filteredData.length} records
                                 </p>
                                 <div className="flex items-center gap-1.5 order-1 sm:order-2">
-
-                                    {/* ← Prev */}
-                                    <button
-                                        disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(p => p - 1)}
+                                    <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}
                                         className="flex items-center gap-1 px-3 h-9 rounded-xl border border-slate-200
                                             bg-white text-xs font-bold text-slate-500 hover:bg-slate-50
-                                            disabled:opacity-30 disabled:cursor-not-allowed transition"
-                                    >
+                                            disabled:opacity-30 disabled:cursor-not-allowed transition">
                                         <ChevronLeft size={13} /> Prev
                                     </button>
-
-                                    {/* Sliding window of 5 pages */}
                                     {(() => {
                                         const win = 5;
                                         let s = Math.max(1, currentPage - Math.floor(win / 2));
                                         let e = s + win - 1;
                                         if (e > totalPages) { e = totalPages; s = Math.max(1, e - win + 1); }
-                                        return Array.from({ length: e - s + 1 }, (_, i) => s + i).map(p => (
-                                            <button
-                                                key={p}
-                                                onClick={() => setCurrentPage(p)}
+                                        return Array.from({ length: e - s + 1 }, (_, i) => s + i).map((p) => (
+                                            <button key={p} onClick={() => setCurrentPage(p)}
                                                 className={`w-9 h-9 rounded-xl text-xs font-bold transition ${
                                                     currentPage === p
                                                         ? "bg-[#0a4d44] text-white shadow-sm"
                                                         : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                                                }`}
-                                            >
+                                                }`}>
                                                 {p}
                                             </button>
                                         ));
                                     })()}
-
-                                    {/* Next → */}
-                                    <button
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(p => p + 1)}
+                                    <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}
                                         className="flex items-center gap-1 px-3 h-9 rounded-xl border border-slate-200
                                             bg-white text-xs font-bold text-slate-500 hover:bg-slate-50
-                                            disabled:opacity-30 disabled:cursor-not-allowed transition"
-                                    >
+                                            disabled:opacity-30 disabled:cursor-not-allowed transition">
                                         Next <ChevronRight size={13} />
                                     </button>
                                 </div>
@@ -370,26 +346,19 @@ const EmployeePerformance = () => {
                 )}
             </div>
 
-            {/* ══════════════════════════════════
-                MODAL — always centered
-            ══════════════════════════════════ */}
+            {/* ── Modal ── */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center
-                    justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg
-                        max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
 
                         {/* Modal header */}
-                        <div className="flex justify-between items-center px-5 sm:px-6 py-4
-                            border-b border-slate-100 flex-shrink-0">
+                        <div className="flex justify-between items-center px-5 sm:px-6 py-4 border-b border-slate-100 flex-shrink-0">
                             <h3 className="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
                                 <BarChart3 size={18} className="text-amber-500 flex-shrink-0" />
                                 {editId ? "Update Record" : "New Performance Entry"}
                             </h3>
-                            <button
-                                onClick={closeForm}
-                                className="p-1.5 hover:bg-slate-100 rounded-lg transition flex-shrink-0"
-                            >
+                            <button onClick={closeForm}
+                                className="p-1.5 hover:bg-slate-100 rounded-lg transition flex-shrink-0">
                                 <X size={18} className="text-slate-400" />
                             </button>
                         </div>
@@ -397,32 +366,46 @@ const EmployeePerformance = () => {
                         {/* Modal form */}
                         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
 
-                            {/* Employee dropdown — dynamic */}
+                            {/* ── Employee dropdown — fully dynamic ── */}
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1 block">
                                     Employee *
                                 </label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 flex-shrink-0" size={15} />
-                                    <select
-                                        required
-                                        value={form.employeeId}
-                                        onChange={handleEmpSelect}
-                                        className="w-full bg-slate-50 border border-slate-200 pl-10 pr-4 py-3
-                                            rounded-xl text-sm font-medium focus:ring-4 ring-emerald-50
-                                            outline-none transition-all appearance-none"
-                                    >
-                                        <option value="">-- Select Employee --</option>
-                                        {employees.map(e => (
-                                            <option key={e._id} value={e._id}>
-                                                {e.name}{e.employeeId ? ` (${e.employeeId})` : ""}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    {empLoading ? (
+                                        <div className="w-full bg-slate-50 border border-slate-200 px-4 py-3
+                                            rounded-xl text-sm text-slate-400 flex items-center gap-2">
+                                            <Loader2 size={14} className="animate-spin" /> Loading employees…
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 flex-shrink-0" size={15} />
+                                            <select
+                                                required
+                                                value={form.employeeId}
+                                                onChange={handleEmpSelect}
+                                                className="w-full bg-slate-50 border border-slate-200 pl-10 pr-4 py-3
+                                                    rounded-xl text-sm font-medium focus:ring-4 ring-emerald-50
+                                                    outline-none transition-all appearance-none"
+                                            >
+                                                <option value="">— Select Employee —</option>
+                                                {employees.map((e) => (
+                                                    <option key={e._id} value={e._id}>
+                                                        {e.name}{e.employeeId ? ` (${e.employeeId})` : ""}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </>
+                                    )}
                                 </div>
-                                {employees.length === 0 && (
-                                    <p className="text-[10px] text-rose-400 ml-1">
-                                        No active employees found. Please add employees first.
+                                {!empLoading && employees.length === 0 && (
+                                    <p className="text-[11px] text-rose-400 ml-1 font-semibold">
+                                        No employees found. Please add employees first.
+                                    </p>
+                                )}
+                                {!empLoading && employees.length > 0 && (
+                                    <p className="text-[10px] text-slate-400 ml-1">
+                                        {employees.length} employee{employees.length !== 1 ? "s" : ""} available
                                     </p>
                                 )}
                             </div>
@@ -441,7 +424,7 @@ const EmployeePerformance = () => {
                                         min="0"
                                         max="1000"
                                         value={form.score}
-                                        onChange={e => setForm({ ...form, score: e.target.value })}
+                                        onChange={(e) => setForm({ ...form, score: e.target.value })}
                                         className="w-full bg-slate-50 border border-slate-200 pl-10 pr-4 py-3
                                             rounded-xl text-sm font-medium focus:ring-4 ring-emerald-50
                                             outline-none transition-all"
@@ -460,7 +443,7 @@ const EmployeePerformance = () => {
                                         required
                                         type="date"
                                         value={form.date}
-                                        onChange={e => setForm({ ...form, date: e.target.value })}
+                                        onChange={(e) => setForm({ ...form, date: e.target.value })}
                                         className="w-full bg-slate-50 border border-slate-200 pl-10 pr-4 py-3
                                             rounded-xl text-sm font-medium focus:ring-4 ring-emerald-50
                                             outline-none transition-all"
@@ -470,19 +453,14 @@ const EmployeePerformance = () => {
 
                             {/* Buttons */}
                             <div className="flex gap-3 pt-1">
-                                <button
-                                    type="button"
-                                    onClick={closeForm}
+                                <button type="button" onClick={closeForm}
                                     className="flex-1 border border-slate-200 py-2.5 rounded-xl text-sm
-                                        font-bold text-slate-600 hover:bg-slate-50 transition"
-                                >
+                                        font-bold text-slate-600 hover:bg-slate-50 transition">
                                     Cancel
                                 </button>
-                                <button
-                                    type="submit"
+                                <button type="submit"
                                     className="flex-1 bg-[#0a4d44] text-white py-2.5 rounded-xl text-sm
-                                        font-bold hover:bg-slate-800 transition shadow-md active:scale-95"
-                                >
+                                        font-bold hover:bg-slate-800 transition shadow-md active:scale-95">
                                     {editId ? "Update Record" : "Submit Performance"}
                                 </button>
                             </div>

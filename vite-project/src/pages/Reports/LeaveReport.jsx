@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { X, Calendar, User, Building2, Tag, Clock, FileText } from "lucide-react";
 
+/* ── tiny helpers loaded from CDN at runtime ── */
+const loadScript = (src) =>
+    new Promise((res, rej) => {
+        if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+        const s = document.createElement("script");
+        s.src = src; s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+    });
+
 const LeaveReport = () => {
     const initialLeaves = [
         { id: 1, name: "Rahul Sharma", dept: "Engineering", type: "Sick Leave",   start: "2026-02-20", end: "2026-02-22", status: "Approved" },
@@ -10,7 +19,7 @@ const LeaveReport = () => {
     ];
 
     const [searchTerm, setSearchTerm] = useState("");
-    const [selected, setSelected]     = useState(null); // ← tracks which row's Details was clicked
+    const [selected, setSelected]     = useState(null);
 
     const filteredLeaves = initialLeaves.filter(leave =>
         leave.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,6 +40,104 @@ const LeaveReport = () => {
 
     const fmtDate = (d) =>
         new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+
+    /* ── Export Excel ── */
+    const exportExcel = async () => {
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js");
+        const XLSX = window.XLSX;
+        const rows = filteredLeaves.map(l => ({
+            "Ref ID":      `LVE-${l.id}00`,
+            "Employee":    l.name,
+            "Department":  l.dept,
+            "Leave Type":  l.type,
+            "Start Date":  l.start,
+            "End Date":    l.end,
+            "Days":        dayCount(l.start, l.end),
+            "Status":      l.status,
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+        /* column widths */
+        ws["!cols"] = [10,18,14,14,12,12,6,10].map(w => ({ wch: w }));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Leave Report");
+        XLSX.writeFile(wb, "Leave_Report.xlsx");
+    };
+
+    /* ── Download PDF ── */
+    const downloadPDF = async () => {
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js");
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+
+        /* header */
+        doc.setFillColor(79, 70, 229);
+        doc.rect(0, 0, doc.internal.pageSize.getWidth(), 54, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("Leave Lifecycle Report", 36, 34);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Generated: ${new Date().toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" })}`, 36, 46);
+
+        doc.autoTable({
+            startY: 68,
+            head: [["Ref ID", "Employee", "Department", "Leave Type", "Start", "End", "Days", "Status"]],
+            body: filteredLeaves.map(l => [
+                `LVE-${l.id}00`,
+                l.name,
+                l.dept,
+                l.type,
+                l.start,
+                l.end,
+                dayCount(l.start, l.end),
+                l.status,
+            ]),
+            headStyles: {
+                fillColor: [241, 245, 249],
+                textColor: [100, 116, 139],
+                fontStyle: "bold",
+                fontSize: 8,
+            },
+            bodyStyles: { fontSize: 9, textColor: [51, 65, 85] },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            didDrawCell: (data) => {
+                if (data.column.index === 7 && data.section === "body") {
+                    const status = data.cell.raw;
+                    const colors = {
+                        Approved: [209, 250, 229],
+                        Pending:  [254, 243, 199],
+                        Rejected: [255, 228, 230],
+                    };
+                    const bg = colors[status] || [241, 245, 249];
+                    const { x, y, width, height } = data.cell;
+                    doc.setFillColor(...bg);
+                    doc.roundedRect(x + 2, y + 3, width - 4, height - 6, 4, 4, "F");
+                    doc.setTextColor(
+                        status === "Approved" ? 5 : status === "Pending" ? 120 : 190,
+                        status === "Approved" ? 150 : status === "Pending" ? 80  : 18,
+                        status === "Approved" ? 90  : status === "Pending" ? 11  : 18,
+                    );
+                    doc.setFontSize(8);
+                    doc.text(status, x + width / 2, y + height / 2 + 3, { align: "center" });
+                    return false;
+                }
+            },
+            margin: { left: 36, right: 36 },
+        });
+
+        /* footer */
+        const pageH = doc.internal.pageSize.getHeight();
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+            `${filteredLeaves.length} record(s) shown  ·  Leave Lifecycle`,
+            36, pageH - 16
+        );
+
+        doc.save("Leave_Report.pdf");
+    };
 
     return (
         <div className="animate-in fade-in duration-500">
@@ -107,7 +214,6 @@ const LeaveReport = () => {
                                                 </span>
                                             </td>
                                             <td className="p-5 text-right">
-                                                {/* ← onClick wired up */}
                                                 <button
                                                     onClick={() => setSelected(leave)}
                                                     className="text-indigo-600 font-black text-[10px] uppercase
@@ -130,8 +236,9 @@ const LeaveReport = () => {
                             ) : filteredLeaves.map(leave => (
                                 <div key={leave.id} className="p-4 space-y-3">
                                     <div className="flex justify-between items-start gap-3">
-                                        <div className="min-w-0">
-                                            <p className="font-black text-slate-800 truncate">{leave.name}</p>
+                                        {/* ✅ FIX: removed min-w-0 and truncate so full name shows */}
+                                        <div>
+                                            <p className="font-black text-slate-800 break-words">{leave.name}</p>
                                             <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{leave.dept}</p>
                                         </div>
                                         <span className={`flex-shrink-0 px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-widest ${getStatusStyles(leave.status)}`}>
@@ -141,7 +248,7 @@ const LeaveReport = () => {
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="bg-slate-50 rounded-xl px-3 py-2">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-wide mb-0.5">Type</p>
-                                            <p className="text-xs font-bold text-slate-700 truncate">{leave.type}</p>
+                                            <p className="text-xs font-bold text-slate-700">{leave.type}</p>
                                         </div>
                                         <div className="bg-indigo-50 rounded-xl px-3 py-2">
                                             <p className="text-[9px] font-black text-indigo-400 uppercase tracking-wide mb-0.5">Days</p>
@@ -156,7 +263,6 @@ const LeaveReport = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    {/* ← Details button on mobile */}
                                     <button
                                         onClick={() => setSelected(leave)}
                                         className="w-full py-2.5 bg-indigo-50 text-indigo-600 rounded-xl
@@ -176,14 +282,20 @@ const LeaveReport = () => {
                             Showing {filteredLeaves.length} applications
                         </p>
                         <div className="flex gap-3 w-full sm:w-auto">
-                            <button className="flex-1 sm:flex-none px-5 py-2.5 bg-slate-100 text-slate-600
-                                font-black text-[10px] uppercase tracking-widest rounded-2xl
-                                hover:bg-slate-200 transition-all">
+                            {/* ✅ FIX: wired to downloadPDF */}
+                            <button
+                                onClick={downloadPDF}
+                                className="flex-1 sm:flex-none px-5 py-2.5 bg-slate-100 text-slate-600
+                                    font-black text-[10px] uppercase tracking-widest rounded-2xl
+                                    hover:bg-slate-200 transition-all">
                                 Download PDF
                             </button>
-                            <button className="flex-1 sm:flex-none px-5 py-2.5 bg-indigo-600 text-white
-                                font-black text-[10px] uppercase tracking-widest rounded-2xl
-                                hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
+                            {/* ✅ FIX: wired to exportExcel */}
+                            <button
+                                onClick={exportExcel}
+                                className="flex-1 sm:flex-none px-5 py-2.5 bg-indigo-600 text-white
+                                    font-black text-[10px] uppercase tracking-widest rounded-2xl
+                                    hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
                                 Export Excel
                             </button>
                         </div>
@@ -198,11 +310,11 @@ const LeaveReport = () => {
                 <div
                     className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm
                         flex items-center justify-center p-4"
-                    onClick={() => setSelected(null)}   // click backdrop to close
+                    onClick={() => setSelected(null)}
                 >
                     <div
                         className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden"
-                        onClick={e => e.stopPropagation()} // prevent modal close on inner click
+                        onClick={e => e.stopPropagation()}
                     >
                         {/* Modal header */}
                         <div className="flex items-center justify-between px-6 py-5
@@ -226,15 +338,12 @@ const LeaveReport = () => {
 
                         {/* Modal body */}
                         <div className="p-6 space-y-2.5">
-
-                            {/* Status badge */}
                             <div className="flex justify-center mb-3">
                                 <span className={`px-5 py-2 rounded-full text-xs font-black border uppercase tracking-widest ${getStatusStyles(selected.status)}`}>
                                     {selected.status}
                                 </span>
                             </div>
 
-                            {/* Info rows */}
                             {[
                                 { icon: <User size={14} />,      label: "Employee",   value: selected.name },
                                 { icon: <Building2 size={14} />, label: "Department", value: selected.dept },
@@ -256,7 +365,7 @@ const LeaveReport = () => {
                                             {row.label}
                                         </span>
                                     </div>
-                                    <span className="font-bold text-slate-700 text-sm text-right truncate">
+                                    <span className="font-bold text-slate-700 text-sm text-right">
                                         {row.value}
                                     </span>
                                 </div>
