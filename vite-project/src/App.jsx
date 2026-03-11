@@ -56,6 +56,11 @@ import UserNoticeBoard from "./pages/User/notice/UserNotice";
 import UserAchievements from "./pages/User/achivement/UserAchivement";
 import CalendarPage from "./pages/User/calendar/Calendar";
 import MeetingsPage from "./pages/User/meeting/Meeting";
+import Pointcategories from "./pages/rewards/Pointcategories";
+import Pointsettings from "./pages/rewards/Pointsettings";
+import CollaborativePoints from "./pages/rewards/Collaborative";
+import AttendancePoints from "./pages/rewards/Attendancepoint";
+import EmployeePoints from "./pages/rewards/Employeepoints";
 
 const App = () => {
   const { isLoggedIn, loginType } = useAuth();
@@ -113,7 +118,13 @@ const App = () => {
         <Route path="/loan/list" element={<LoanList />} />
         <Route path="/notice" element={<Notice />} />
         <Route path="/meetings" element={<MeetingAdmin />} />
+        <Route path="/reward/categories" element={<Pointcategories/>}/>
+        <Route path="/reward/settings" element={<Pointsettings/>}/>
+        <Route path="/reward/collaborative" element={<CollaborativePoints/>}/>
+        <Route path="/reward/attendance" element={<AttendancePoints/>}/>
+        <Route path="/reward/employee" element={<EmployeePoints/>}/>
       </Route>
+      
 
       {/* ── USER ROUTES ── */}
       <Route path="/user" element={isLoggedIn && loginType === "user" ? <UserLayout /> : <Navigate to="/login" replace />}>
