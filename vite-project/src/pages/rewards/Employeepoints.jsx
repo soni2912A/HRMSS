@@ -90,17 +90,6 @@ function SortIcon() {
   );
 }
 
-function FilterIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M4 6h16M7 12h10M10 18h4"/>
-      <path d="M3 6l9 7 9-7" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <path d="M4 6l8 6 8-6v12H4V6z" fill="currentColor" opacity="0.15"/>
-      <polygon points="4,4 20,4 14,12 14,20 10,18 10,12" fill="currentColor"/>
-    </svg>
-  );
-}
-
 export default function EmployeePoints() {
   const [search, setSearch] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -125,33 +114,13 @@ export default function EmployeePoints() {
   const safePage = Math.min(currentPage, totalPages);
   const paginated = filtered.slice((safePage - 1) * entriesPerPage, safePage * entriesPerPage);
 
-  // Pagination: show first, last, and window around current with ellipsis
   const getPageNums = () => {
-    const pages = [];
     if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-      return pages;
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-    // Always show 1, window of 5, last page, with ellipsis
-    const window = [];
-    for (let i = Math.max(2, safePage - 1); i <= Math.min(totalPages - 1, safePage + 1); i++) {
-      window.push(i);
-    }
-    // Ensure at least pages 2-5 visible on page 1
-    if (safePage <= 3) {
-      const base = [2, 3, 4, 5].filter(n => n < totalPages);
-      return [1, ...base, "...", totalPages];
-    }
-    if (safePage >= totalPages - 2) {
-      const base = [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1].filter(n => n > 1);
-      return [1, "...", ...base, totalPages];
-    }
-    return [1, "...", ...window, "...", totalPages];
-  };
-
-  const handlePageChange = (p) => {
-    if (p === "...") return;
-    setCurrentPage(p);
+    if (safePage <= 3) return [1, 2, 3, 4, 5, "...", totalPages];
+    if (safePage >= totalPages - 2) return [1, "...", totalPages-4, totalPages-3, totalPages-2, totalPages-1, totalPages];
+    return [1, "...", safePage - 1, safePage, safePage + 1, "...", totalPages];
   };
 
   const exportCSV = () => {
@@ -164,145 +133,210 @@ export default function EmployeePoints() {
     a.download = "employee_points.csv"; a.click();
   };
 
-  return (
-    <div style={{ background: "#f0f2f5", minHeight: "100vh", padding: "32px", fontFamily: "'Segoe UI', sans-serif" }}>
-      <div style={{ background: "#fff", borderRadius: 12, padding: "28px 32px", boxShadow: "0 1px 6px rgba(0,0,0,0.08)", maxWidth: 1200, margin: "0 auto" }}>
+  const startIdx = filtered.length === 0 ? 0 : (safePage - 1) * entriesPerPage + 1;
+  const endIdx = Math.min(safePage * entriesPerPage, filtered.length);
 
+  return (
+    <div style={{ background: "#f0f2f5", minHeight: "100vh", padding: "24px 16px", fontFamily: "'Segoe UI', sans-serif", boxSizing: "border-box" }}>
+      <style>{`
+        * { box-sizing: border-box; }
+
+        .ep-card { background: #fff; borderRadius: 12px; padding: 28px 32px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); max-width: 1200px; margin: 0 auto; border-radius: 12px; }
+
+        /* Header */
+        .ep-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .ep-title { margin: 0; font-size: 1.2rem; font-weight: 700; color: #111; }
+        .ep-btn-filter { background: #16a34a; color: #fff; border: none; border-radius: 7px; padding: 9px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+
+        /* Filter panel */
+        .ep-filter { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin-bottom: 18px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+        .ep-filter label { font-size: 0.82rem; font-weight: 600; color: #374151; display: block; margin-bottom: 5px; }
+        .ep-filter input { border: 1px solid #d1d5db; border-radius: 6px; padding: 7px 10px; font-size: 0.82rem; outline: none; width: 180px; }
+        .ep-filter input:focus { border-color: #16a34a; }
+        .ep-btn-clear { background: #e53e3e; color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
+
+        /* Controls row */
+        .ep-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .ep-show { font-size: 0.84rem; color: #555; display: flex; align-items: center; gap: 6px; }
+        .ep-show select { border: 1px solid #d1d5db; border-radius: 5px; padding: 4px 8px; font-size: 0.84rem; cursor: pointer; }
+        .ep-export { display: flex; gap: 8px; }
+        .ep-btn-export { background: #16a34a; color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-weight: 600; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .ep-search { font-size: 0.84rem; color: #555; display: flex; align-items: center; gap: 8px; }
+        .ep-search input { border: 1px solid #d1d5db; border-radius: 5px; padding: 6px 10px; font-size: 0.84rem; outline: none; width: 170px; }
+        .ep-search input:focus { border-color: #16a34a; }
+
+        /* Desktop Table */
+        .ep-table-wrap { overflow-x: auto; }
+        .ep-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        .ep-table thead th { padding: 11px 13px; text-align: left; font-weight: 700; color: #111; border-bottom: 2px solid #e5e7eb; white-space: nowrap; background: #fff; }
+        .ep-table tbody tr { border-bottom: 1px solid #f0f0f0; }
+        .ep-table tbody tr:nth-child(even) { background: #fafafa; }
+        .ep-table tbody td { padding: 10px 13px; color: #222; }
+        .ep-total { color: #16a34a; font-weight: 700; }
+        .ep-sl { color: #888; text-align: center; }
+
+        /* Mobile Cards */
+        .ep-mobile { display: none; }
+        .ep-mcard { background: #fff; border: 1px solid #e5e7eb; border-radius: 9px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+        .ep-mcard-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .ep-mcard-name { font-weight: 700; color: #111; font-size: 0.9rem; flex: 1; margin-right: 10px; }
+        .ep-mcard-total { background: #dcfce7; color: #16a34a; font-weight: 700; border-radius: 20px; padding: 3px 12px; font-size: 0.82rem; white-space: nowrap; }
+        .ep-mcard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+        .ep-mcard-item { font-size: 0.78rem; }
+        .ep-mcard-item .label { color: #888; display: block; margin-bottom: 1px; }
+        .ep-mcard-item .val { color: #222; font-weight: 600; }
+        .ep-mcard-date { margin-top: 8px; font-size: 0.78rem; color: #888; }
+
+        /* Pagination */
+        .ep-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; flex-wrap: wrap; gap: 10px; }
+        .ep-info { font-size: 0.82rem; color: #666; }
+        .ep-pages { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+        .ep-pgbtn { padding: 6px 12px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: #333; min-width: 34px; transition: all 0.15s; }
+        .ep-pgbtn:hover:not(:disabled) { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
+        .ep-pgbtn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .ep-pgbtn.active { background: #16a34a; color: #fff; border-color: #16a34a; }
+        .ep-pgbtn.dots { cursor: default; color: #999; border-color: transparent; background: transparent; }
+
+        @media (max-width: 600px) {
+          .ep-card { padding: 16px 14px; }
+          .ep-table-wrap { display: none; }
+          .ep-mobile { display: block; }
+          .ep-controls { flex-direction: column; align-items: flex-start; }
+          .ep-search { width: 100%; }
+          .ep-search input { flex: 1; width: 100%; }
+          .ep-export { width: 100%; }
+          .ep-btn-export { flex: 1; justify-content: center; }
+          .ep-filter input { width: 100%; }
+          .ep-footer { flex-direction: column; align-items: flex-start; }
+          .ep-pages { width: 100%; justify-content: center; }
+        }
+
+        @media (min-width: 601px) and (max-width: 900px) {
+          .ep-card { padding: 20px 18px; }
+          .ep-controls { gap: 8px; }
+          .ep-search input { width: 140px; }
+        }
+      `}</style>
+
+      <div className="ep-card">
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#111" }}>Employee points</h2>
-          <button
-            onClick={() => setShowFilter(f => !f)}
-            style={{ background: "#16a34a", color: "#fff", border: "none", borderRadius: 7, padding: "10px 20px", fontWeight: 600, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
-          >
-            <FilterIcon /> Filter
+        <div className="ep-header">
+          <h2 className="ep-title">Employee points</h2>
+          <button className="ep-btn-filter" onClick={() => setShowFilter(f => !f)}>
+            ⚙ Filter
           </button>
         </div>
 
         {/* Filter Panel */}
         {showFilter && (
-          <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 8, padding: "18px 24px", marginBottom: 20, display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div className="ep-filter">
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 5 }}>Employee Name</label>
-              <input value={filterName} onChange={e => { setFilterName(e.target.value); setCurrentPage(1); }}
-                placeholder="Search by name..."
-                style={{ border: "1px solid #d1d5db", borderRadius: 6, padding: "8px 12px", fontSize: 13, outline: "none", width: 200 }} />
+              <label>Employee Name</label>
+              <input value={filterName} onChange={e => { setFilterName(e.target.value); setCurrentPage(1); }} placeholder="Search by name..." />
             </div>
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 5 }}>Date</label>
-              <input value={filterDate} onChange={e => { setFilterDate(e.target.value); setCurrentPage(1); }}
-                placeholder="e.g. May 2024"
-                style={{ border: "1px solid #d1d5db", borderRadius: 6, padding: "8px 12px", fontSize: 13, outline: "none", width: 160 }} />
+              <label>Date</label>
+              <input value={filterDate} onChange={e => { setFilterDate(e.target.value); setCurrentPage(1); }} placeholder="e.g. May 2024" />
             </div>
-            <button onClick={() => { setFilterName(""); setFilterDate(""); setCurrentPage(1); }}
-              style={{ background: "#e53e3e", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
-              Clear
-            </button>
+            <button className="ep-btn-clear" onClick={() => { setFilterName(""); setFilterDate(""); setCurrentPage(1); }}>Clear</button>
           </div>
         )}
 
-        {/* Controls Row */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
-          <div style={{ fontSize: 13, color: "#555", display: "flex", alignItems: "center", gap: 6 }}>
+        {/* Controls */}
+        <div className="ep-controls">
+          <div className="ep-show">
             Show&nbsp;
-            <select value={entriesPerPage} onChange={e => { setEntriesPerPage(+e.target.value); setCurrentPage(1); }}
-              style={{ border: "1px solid #d1d5db", borderRadius: 5, padding: "4px 8px", fontSize: 13, cursor: "pointer" }}>
+            <select value={entriesPerPage} onChange={e => { setEntriesPerPage(+e.target.value); setCurrentPage(1); }}>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
             </select>
             &nbsp;entries
           </div>
-
-          {/* CSV / Excel Buttons */}
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={exportCSV}
-              style={{ background: "#16a34a", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-              <span>📄</span> CSV
-            </button>
-            <button
-              style={{ background: "#16a34a", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-              <span>📊</span> Excel
-            </button>
+          <div className="ep-export">
+            <button className="ep-btn-export" onClick={exportCSV}>📄 CSV</button>
+            <button className="ep-btn-export">📊 Excel</button>
           </div>
-
-          <div style={{ fontSize: 13, color: "#555", display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="ep-search">
             Search:
-            <input value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-              style={{ border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 10px", fontSize: 13, outline: "none", width: 180 }} />
+            <input value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder="Search..." />
           </div>
         </div>
 
-        {/* Table */}
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+        {/* Desktop Table */}
+        <div className="ep-table-wrap">
+          <table className="ep-table">
             <thead>
-              <tr style={{ borderTop: "1px solid #e5e7eb", borderBottom: "1px solid #e5e7eb", background: "#fff" }}>
-                {[
-                  { label: "Sl", width: 55 },
-                  { label: "Employee name", width: 260 },
-                  { label: "Attendance points", width: 160 },
-                  { label: "Collaborative points", width: 175 },
-                  { label: "Management points", width: 170 },
-                  { label: "Total points", width: 130 },
-                  { label: "Date", width: 140 },
-                ].map(col => (
-                  <th key={col.label} style={{ padding: "12px 14px", textAlign: "left", fontWeight: 700, color: "#111", fontSize: 14, width: col.width, whiteSpace: "nowrap", borderBottom: "2px solid #e5e7eb" }}>
-                    {col.label} {col.label !== "Sl" && <SortIcon />}
-                  </th>
-                ))}
+              <tr>
+                <th>Sl</th>
+                <th>Employee name <SortIcon /></th>
+                <th>Attendance points <SortIcon /></th>
+                <th>Collaborative points <SortIcon /></th>
+                <th>Management points <SortIcon /></th>
+                <th>Total points <SortIcon /></th>
+                <th>Date <SortIcon /></th>
               </tr>
             </thead>
             <tbody>
               {paginated.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: "center", padding: 40, color: "#999", fontSize: 14 }}>No records found</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: "center", padding: 40, color: "#999" }}>No records found</td></tr>
               ) : paginated.map((row, idx) => (
-                <tr key={row.id} style={{ borderBottom: "1px solid #f0f0f0", background: idx % 2 === 0 ? "#fff" : "#fafafa" }}>
-                  <td style={{ padding: "11px 14px", color: "#555", textAlign: "center" }}>{(safePage - 1) * entriesPerPage + idx + 1}</td>
-                  <td style={{ padding: "11px 14px", color: "#222" }}>{row.name}</td>
-                  <td style={{ padding: "11px 14px", color: "#222" }}>{row.attendance ?? ""}</td>
-                  <td style={{ padding: "11px 14px", color: "#222" }}>{row.collaborative ?? ""}</td>
-                  <td style={{ padding: "11px 14px", color: "#222" }}>{row.management ?? ""}</td>
-                  <td style={{ padding: "11px 14px", color: "#16a34a", fontWeight: 600 }}>{row.total}</td>
-                  <td style={{ padding: "11px 14px", color: "#222" }}>{row.date}</td>
+                <tr key={row.id}>
+                  <td className="ep-sl">{startIdx + idx}</td>
+                  <td>{row.name}</td>
+                  <td>{row.attendance ?? ""}</td>
+                  <td>{row.collaborative ?? ""}</td>
+                  <td>{row.management ?? ""}</td>
+                  <td className="ep-total">{row.total}</td>
+                  <td>{row.date}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
+        {/* Mobile Cards */}
+        <div className="ep-mobile">
+          {paginated.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 32, color: "#999" }}>No records found</div>
+          ) : paginated.map((row, idx) => (
+            <div className="ep-mcard" key={row.id}>
+              <div className="ep-mcard-header">
+                <div className="ep-mcard-name">#{startIdx + idx} {row.name}</div>
+                <div className="ep-mcard-total">Total: {row.total}</div>
+              </div>
+              <div className="ep-mcard-grid">
+                <div className="ep-mcard-item">
+                  <span className="label">Attendance</span>
+                  <span className="val">{row.attendance ?? "—"}</span>
+                </div>
+                <div className="ep-mcard-item">
+                  <span className="label">Collaborative</span>
+                  <span className="val">{row.collaborative ?? "—"}</span>
+                </div>
+                <div className="ep-mcard-item">
+                  <span className="label">Management</span>
+                  <span className="val">{row.management ?? "—"}</span>
+                </div>
+              </div>
+              <div className="ep-mcard-date">📅 {row.date}</div>
+            </div>
+          ))}
+        </div>
+
         {/* Footer / Pagination */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, flexWrap: "wrap", gap: 12 }}>
-          <span style={{ fontSize: 13, color: "#555" }}>
-            Showing {filtered.length === 0 ? 0 : (safePage - 1) * entriesPerPage + 1} to {Math.min(safePage * entriesPerPage, filtered.length)} of {filtered.length} entries
-          </span>
-          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={safePage === 1}
-              style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #d1d5db", background: "#fff", cursor: safePage === 1 ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 600, color: "#333", opacity: safePage === 1 ? 0.5 : 1 }}
-            >Previous</button>
-
-            {getPageNums().map((n, i) => (
-              <button key={i} onClick={() => handlePageChange(n)}
-                disabled={n === "..."}
-                style={{
-                  padding: "7px 12px", borderRadius: 6, border: "1px solid #d1d5db",
-                  background: n === safePage ? "#16a34a" : "#fff",
-                  color: n === safePage ? "#fff" : n === "..." ? "#999" : "#333",
-                  cursor: n === "..." ? "default" : "pointer",
-                  fontSize: 13, fontWeight: n === safePage ? 700 : 500,
-                  minWidth: 36,
-                }}>
-                {n}
-              </button>
-            ))}
-
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={safePage === totalPages}
-              style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #d1d5db", background: "#fff", cursor: safePage === totalPages ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 600, color: "#333", opacity: safePage === totalPages ? 0.5 : 1 }}
-            >Next</button>
+        <div className="ep-footer">
+          <span className="ep-info">Showing {startIdx} to {endIdx} of {filtered.length} entries</span>
+          <div className="ep-pages">
+            <button className="ep-pgbtn" disabled={safePage === 1} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
+            {getPageNums().map((n, i) =>
+              n === "..." ? (
+                <button key={`dots-${i}`} className="ep-pgbtn dots">…</button>
+              ) : (
+                <button key={n} className={`ep-pgbtn${safePage === n ? " active" : ""}`} onClick={() => setCurrentPage(n)}>{n}</button>
+              )
+            )}
+            <button className="ep-pgbtn" disabled={safePage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
           </div>
         </div>
       </div>

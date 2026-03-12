@@ -61,6 +61,7 @@ import Pointsettings from "./pages/rewards/Pointsettings";
 import CollaborativePoints from "./pages/rewards/Collaborative";
 import AttendancePoints from "./pages/rewards/Attendancepoint";
 import EmployeePoints from "./pages/rewards/Employeepoints";
+import SetupRules from "./pages/setuprule/Setup";
 
 const App = () => {
   const { isLoggedIn, loginType } = useAuth();
@@ -123,6 +124,7 @@ const App = () => {
         <Route path="/reward/collaborative" element={<CollaborativePoints/>}/>
         <Route path="/reward/attendance" element={<AttendancePoints/>}/>
         <Route path="/reward/employee" element={<EmployeePoints/>}/>
+        <Route path="/setup/rules" element={<SetupRules/>}/>
       </Route>
       
 

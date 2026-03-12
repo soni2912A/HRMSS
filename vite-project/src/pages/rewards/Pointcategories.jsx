@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const initialCategories = [
+const initialData = [
   { id: 1, name: "Sojib" },
   { id: 2, name: "reporting" },
   { id: 3, name: "team work" },
@@ -9,213 +9,264 @@ const initialCategories = [
   { id: 6, name: "Employee of the month" },
   { id: 7, name: "Star Performer" },
   { id: 8, name: "Best Employee" },
-  { id: 9, name: "Leadership" },
-  { id: 10, name: "Innovation" },
-  { id: 11, name: "Punctuality" },
-  { id: 12, name: "Communication" },
 ];
 
 const ITEMS_PER_PAGE = 5;
 
-function Modal({ title, children }) {
-  return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
-    }}>
-      <div style={{
-        background: "#fff", borderRadius: 10, padding: "32px 36px", minWidth: 520,
-        maxWidth: 600, width: "90%", boxShadow: "0 8px 40px rgba(0,0,0,0.18)"
-      }}>
-        <h2 style={{ margin: "0 0 24px", fontSize: 20, fontWeight: 700, color: "#1a1a1a" }}>{title}</h2>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function CategoryModal({ initial, onClose, onSave }) {
-  const [name, setName] = useState(initial || "");
-  return (
-    <Modal title={initial ? "Edit point category" : "New point category"}>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 28 }}>
-        <label style={{ width: 160, fontWeight: 600, fontSize: 14, color: "#222" }}>
-          Category name<span style={{ color: "#e53e3e" }}>*</span>
-        </label>
-        <input
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Category name"
-          style={{
-            flex: 1, border: "1px solid #d1d5db", borderRadius: 6, padding: "10px 14px",
-            fontSize: 14, outline: "none", color: "#333", background: "#fafafa"
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <button onClick={onClose} style={btnStyle("red")}>Close</button>
-        <button onClick={() => { if (name.trim()) onSave(name.trim()); }} style={btnStyle("blue")}>Save</button>
-      </div>
-    </Modal>
-  );
-}
-
-function btnStyle(color) {
-  return {
-    padding: "9px 22px", borderRadius: 6, border: "none", cursor: "pointer",
-    fontWeight: 600, fontSize: 14, color: "#fff",
-    background: color === "red" ? "#e53e3e" : color === "blue" ? "#3182ce" : "#38a169",
-  };
-}
-
-function IconBtn({ color, onClick, children }) {
-  return (
-    <button onClick={onClick} style={{
-      background: color, border: "none", borderRadius: 5, padding: "6px 10px",
-      cursor: "pointer", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center"
-    }}>
-      {children}
-    </button>
-  );
-}
-
-function PencilIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <polyline points="3 6 5 6 21 6"/>
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-      <path d="M10 11v6M14 11v6"/>
-      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-    </svg>
-  );
-}
-
-const paginBtn = {
-  padding: "6px 14px", borderRadius: 5, border: "1px solid #d1d5db",
-  background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 500, color: "#333"
-};
-
-export default function App() {
-  const [categories, setCategories] = useState(initialCategories);
-  const [showNewCategory, setShowNewCategory] = useState(false);
-  const [editCategory, setEditCategory] = useState(null);
+export default function PointCategories() {
+  const [data, setData] = useState(initialData);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [showEntries, setShowEntries] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [modal, setModal] = useState(null); // null | { type: 'add' | 'edit' | 'delete', item?: {} }
+  const [formValue, setFormValue] = useState("");
+  const [toast, setToast] = useState(null);
 
-  const filtered = categories.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const filtered = data.filter((d) =>
+    d.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const safePage = Math.min(page, Math.max(1, totalPages));
-  const paginated = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+  const openAdd = () => {
+    setFormValue("");
+    setModal({ type: "add" });
+  };
+  const openEdit = (item) => {
+    setFormValue(item.name);
+    setModal({ type: "edit", item });
+  };
+  const openDelete = (item) => setModal({ type: "delete", item });
+  const closeModal = () => setModal(null);
 
-  const getPageNums = () => {
-    const nums = [];
-    let start = Math.max(1, safePage - 2);
-    let end = Math.min(totalPages, start + 4);
-    if (end - start < 4) start = Math.max(1, end - 4);
-    for (let i = start; i <= end; i++) nums.push(i);
-    return nums;
+  const handleAdd = () => {
+    if (!formValue.trim()) return;
+    const newItem = { id: Date.now(), name: formValue.trim() };
+    setData([...data, newItem]);
+    closeModal();
+    showToast("Category added successfully!");
+    setCurrentPage(Math.ceil((data.length + 1) / ITEMS_PER_PAGE));
   };
 
-  const handleDelete = (id) => setCategories(cats => cats.filter(c => c.id !== id));
-  const handleAdd = (name) => {
-    const newId = Math.max(...categories.map(c => c.id), 0) + 1;
-    setCategories(cats => [...cats, { id: newId, name }]);
-    setShowNewCategory(false);
+  const handleEdit = () => {
+    if (!formValue.trim()) return;
+    setData(data.map((d) => d.id === modal.item.id ? { ...d, name: formValue.trim() } : d));
+    closeModal();
+    showToast("Category updated successfully!");
   };
-  const handleEdit = (name) => {
-    setCategories(cats => cats.map(c => c.id === editCategory.id ? { ...c, name } : c));
-    setEditCategory(null);
+
+  const handleDelete = () => {
+    const newData = data.filter((d) => d.id !== modal.item.id);
+    setData(newData);
+    const newTotal = Math.ceil(newData.filter(d => d.name.toLowerCase().includes(search.toLowerCase())).length / ITEMS_PER_PAGE);
+    if (currentPage > newTotal) setCurrentPage(Math.max(1, newTotal));
+    closeModal();
+    showToast("Category deleted.", "error");
+  };
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
   };
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', sans-serif", background: "#f3f4f6", minHeight: "100vh", padding: 30 }}>
-      <div style={{ background: "#fff", borderRadius: 10, padding: "28px 32px", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-        
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#1a1a1a" }}>Point categories</h2>
-          <button onClick={() => setShowNewCategory(true)} style={{ ...btnStyle("green"), display: "flex", alignItems: "center", gap: 6 }}>
-            ＋ New category
+    <div style={{ fontFamily: "'Segoe UI', sans-serif", background: "#f4f6f9", minHeight: "100vh", padding: "24px 16px" }}>
+      <style>{`
+        * { box-sizing: border-box; }
+        .card { background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 28px 24px; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #2d3748; }
+        .btn-add { background: #1abc9c; color: #fff; border: none; border-radius: 6px; padding: 9px 18px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .btn-add:hover { background: #17a589; }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+        .show-entries { font-size: 0.85rem; color: #555; }
+        .search-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; }
+        .search-wrap input { border: 1px solid #ddd; border-radius: 5px; padding: 6px 10px; font-size: 0.85rem; outline: none; width: 180px; }
+        .search-wrap input:focus { border-color: #1abc9c; }
+        /* Desktop Table */
+        .tbl-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        thead th { background: #f8f9fa; color: #555; font-weight: 600; padding: 12px 14px; text-align: left; border-bottom: 2px solid #e9ecef; }
+        tbody tr { border-bottom: 1px solid #f0f0f0; transition: background 0.15s; }
+        tbody tr:hover { background: #f9fffe; }
+        td { padding: 12px 14px; color: #2d3748; }
+        .td-sl { color: #888; width: 80px; }
+        .action-btns { display: flex; gap: 8px; }
+        .btn-edit { background: #e3f2fd; color: #1565c0; border: none; border-radius: 5px; padding: 7px 10px; cursor: pointer; transition: background 0.2s; }
+        .btn-edit:hover { background: #bbdefb; }
+        .btn-del { background: #fdecea; color: #c62828; border: none; border-radius: 5px; padding: 7px 10px; cursor: pointer; transition: background 0.2s; }
+        .btn-del:hover { background: #ffcdd2; }
+        /* Mobile Cards */
+        .mobile-cards { display: none; }
+        .m-card { background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .m-card-info .m-sl { font-size: 0.75rem; color: #aaa; margin-bottom: 2px; }
+        .m-card-info .m-name { font-weight: 600; color: #2d3748; font-size: 0.95rem; }
+        /* Pagination */
+        .pagination-row { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; flex-wrap: wrap; gap: 10px; }
+        .pagination-info { font-size: 0.82rem; color: #777; }
+        .pagination-btns { display: flex; align-items: center; gap: 6px; }
+        .pg-btn { background: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; color: #555; transition: all 0.15s; }
+        .pg-btn:hover:not(:disabled) { background: #f0fdf9; border-color: #1abc9c; color: #1abc9c; }
+        .pg-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .pg-btn.active { background: #1abc9c; color: #fff; border-color: #1abc9c; font-weight: 700; }
+        /* Modal */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .modal { background: #fff; border-radius: 10px; padding: 28px 24px; width: 100%; max-width: 420px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); }
+        .modal h3 { margin: 0 0 18px; font-size: 1.1rem; color: #2d3748; }
+        .modal label { font-size: 0.85rem; color: #555; font-weight: 600; display: block; margin-bottom: 6px; }
+        .modal input { width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 9px 12px; font-size: 0.9rem; outline: none; margin-bottom: 18px; }
+        .modal input:focus { border-color: #1abc9c; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-cancel { background: #f1f3f5; border: none; border-radius: 6px; padding: 9px 18px; cursor: pointer; font-size: 0.9rem; color: #555; font-weight: 600; }
+        .btn-cancel:hover { background: #e9ecef; }
+        .btn-confirm { background: #1abc9c; color: #fff; border: none; border-radius: 6px; padding: 9px 18px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+        .btn-confirm:hover { background: #17a589; }
+        .btn-danger { background: #e53935; color: #fff; border: none; border-radius: 6px; padding: 9px 18px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+        .btn-danger:hover { background: #c62828; }
+        .del-msg { font-size: 0.92rem; color: #555; margin-bottom: 20px; }
+        /* Toast */
+        .toast { position: fixed; bottom: 28px; right: 24px; padding: 12px 20px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; z-index: 9999; box-shadow: 0 4px 18px rgba(0,0,0,0.15); animation: fadeIn 0.3s; }
+        .toast.success { background: #1abc9c; color: #fff; }
+        .toast.error { background: #e53935; color: #fff; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 600px) {
+          .tbl-wrap table { display: none; }
+          .mobile-cards { display: block; }
+          .card { padding: 18px 14px; }
+          h2 { font-size: 1.05rem; }
+          .search-wrap input { width: 130px; }
+        }
+      `}</style>
+
+      <div className="card">
+        <div className="header-row">
+          <h2>Point categories</h2>
+          <button className="btn-add" onClick={openAdd}>
+            <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>+</span> New category
           </button>
         </div>
 
-        {/* Controls */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div style={{ fontSize: 14, color: "#555" }}>
-            Show&nbsp;
-            <select value={showEntries} onChange={e => setShowEntries(+e.target.value)} style={{ border: "1px solid #d1d5db", borderRadius: 4, padding: "3px 6px" }}>
-              {[5, 10, 25].map(n => <option key={n}>{n}</option>)}
-            </select>
-            &nbsp;entries
+        <div className="controls">
+          <div className="show-entries">
+            Show <strong>{ITEMS_PER_PAGE}</strong> entries
           </div>
-          <div style={{ fontSize: 14, color: "#555" }}>
-            Search:&nbsp;
-            <input
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1); }}
-              style={{ border: "1px solid #d1d5db", borderRadius: 4, padding: "5px 10px", fontSize: 14 }}
-            />
+          <div className="search-wrap">
+            Search:
+            <input value={search} onChange={handleSearchChange} placeholder="Search..." />
           </div>
         </div>
 
-        {/* Table */}
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: "#f9fafb", borderBottom: "2px solid #e5e7eb" }}>
-              <th style={{ padding: "10px 16px", textAlign: "left", fontWeight: 700, color: "#374151", width: 60 }}>Sl</th>
-              <th style={{ padding: "10px 16px", textAlign: "left", fontWeight: 700, color: "#374151" }}>Category name</th>
-              <th style={{ padding: "10px 16px", textAlign: "left", fontWeight: 700, color: "#374151", width: 120 }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginated.length === 0 ? (
-              <tr><td colSpan={3} style={{ textAlign: "center", padding: 30, color: "#999" }}>No categories found</td></tr>
-            ) : paginated.map((cat, idx) => (
-              <tr key={cat.id} style={{ borderBottom: "1px solid #f0f0f0", background: idx % 2 === 1 ? "#f9fafb" : "#fff" }}>
-                <td style={{ padding: "10px 16px", color: "#555" }}>{(safePage - 1) * ITEMS_PER_PAGE + idx + 1}</td>
-                <td style={{ padding: "10px 16px", color: "#222" }}>{cat.name}</td>
-                <td style={{ padding: "10px 16px" }}>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <IconBtn color="#3182ce" onClick={() => setEditCategory(cat)}><PencilIcon /></IconBtn>
-                    <IconBtn color="#e53e3e" onClick={() => handleDelete(cat.id)}><TrashIcon /></IconBtn>
-                  </div>
-                </td>
+        {/* Desktop Table */}
+        <div className="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th className="td-sl">Sl ↕</th>
+                <th>Category name ↕</th>
+                <th>Action ↕</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginated.length === 0 ? (
+                <tr><td colSpan={3} style={{ textAlign: "center", color: "#aaa", padding: "28px" }}>No categories found.</td></tr>
+              ) : paginated.map((item, idx) => (
+                <tr key={item.id}>
+                  <td className="td-sl">{(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}</td>
+                  <td>{item.name}</td>
+                  <td>
+                    <div className="action-btns">
+                      <button className="btn-edit" title="Edit" onClick={() => openEdit(item)}>✏️</button>
+                      <button className="btn-del" title="Delete" onClick={() => openDelete(item)}>🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-        {/* Footer */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 18 }}>
-          <span style={{ fontSize: 13, color: "#666" }}>
-            Showing {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} entries
-          </span>
-          <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{ ...paginBtn, opacity: safePage === 1 ? 0.4 : 1 }}>Previous</button>
-            {getPageNums().map(n => (
-              <button key={n} onClick={() => setPage(n)} style={{ ...paginBtn, background: n === safePage ? "#38a169" : "#fff", color: n === safePage ? "#fff" : "#333" }}>{n}</button>
+        {/* Mobile Cards */}
+        <div className="mobile-cards">
+          {paginated.length === 0 ? (
+            <div style={{ textAlign: "center", color: "#aaa", padding: "28px" }}>No categories found.</div>
+          ) : paginated.map((item, idx) => (
+            <div className="m-card" key={item.id}>
+              <div className="m-card-info">
+                <div className="m-sl">#{(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}</div>
+                <div className="m-name">{item.name}</div>
+              </div>
+              <div className="action-btns">
+                <button className="btn-edit" title="Edit" onClick={() => openEdit(item)}>✏️</button>
+                <button className="btn-del" title="Delete" onClick={() => openDelete(item)}>🗑️</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Pagination */}
+        <div className="pagination-row">
+          <div className="pagination-info">
+            Showing {filtered.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} entries
+          </div>
+          <div className="pagination-btns">
+            <button className="pg-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button key={i + 1} className={`pg-btn${currentPage === i + 1 ? " active" : ""}`} onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
             ))}
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages || totalPages === 0} style={{ ...paginBtn, opacity: (safePage === totalPages || totalPages === 0) ? 0.4 : 1 }}>Next</button>
+            <button className="pg-btn" disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
           </div>
         </div>
       </div>
 
       {/* Modals */}
-      {showNewCategory && <CategoryModal onClose={() => setShowNewCategory(false)} onSave={handleAdd} />}
-      {editCategory && <CategoryModal initial={editCategory.name} onClose={() => setEditCategory(null)} onSave={handleEdit} />}
+      {modal && (
+        <div className="overlay" onClick={closeModal}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            {modal.type === "add" && (
+              <>
+                <h3>Add New Category</h3>
+                <label>Category Name</label>
+                <input autoFocus value={formValue} onChange={e => setFormValue(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAdd()} placeholder="Enter category name..." />
+                <div className="modal-actions">
+                  <button className="btn-cancel" onClick={closeModal}>Cancel</button>
+                  <button className="btn-confirm" onClick={handleAdd}>Add Category</button>
+                </div>
+              </>
+            )}
+            {modal.type === "edit" && (
+              <>
+                <h3>Edit Category</h3>
+                <label>Category Name</label>
+                <input autoFocus value={formValue} onChange={e => setFormValue(e.target.value)} onKeyDown={e => e.key === "Enter" && handleEdit()} />
+                <div className="modal-actions">
+                  <button className="btn-cancel" onClick={closeModal}>Cancel</button>
+                  <button className="btn-confirm" onClick={handleEdit}>Save Changes</button>
+                </div>
+              </>
+            )}
+            {modal.type === "delete" && (
+              <>
+                <h3>Delete Category</h3>
+                <p className="del-msg">Are you sure you want to delete <strong>"{modal.item.name}"</strong>? This action cannot be undone.</p>
+                <div className="modal-actions">
+                  <button className="btn-cancel" onClick={closeModal}>Cancel</button>
+                  <button className="btn-danger" onClick={handleDelete}>Delete</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && <div className={`toast ${toast.type}`}>{toast.msg}</div>}
     </div>
   );
 }

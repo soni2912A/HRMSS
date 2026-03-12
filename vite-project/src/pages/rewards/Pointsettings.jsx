@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function PointSettings() {
+const PointSettingsForm = () => {
   const [form, setForm] = useState({
     generalPoint: "40",
     attendancePoint: "5",
@@ -9,138 +9,233 @@ export default function PointSettings() {
     startTime: "09:15",
     endTime: "17:00",
   });
+  const [saved, setSaved] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const e = {};
+    if (!form.generalPoint) e.generalPoint = "Required";
+    if (!form.attendancePoint) e.attendancePoint = "Required";
+    if (!form.collaborativeStart) e.collaborativeStart = "Required";
+    if (!form.collaborativeEnd) e.collaborativeEnd = "Required";
+    if (!form.startTime) e.startTime = "Required";
+    if (!form.endTime) e.endTime = "Required";
+    return e;
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
+    setSaved(false);
+    setCancelled(false);
   };
 
-  const handleSave = () => alert("Settings saved!");
-  const handleClose = () => alert("Closed!");
-
-  const inputStyle = {
-    width: "100%",
-    padding: "10px 14px",
-    border: "1px solid #d1d5db",
-    borderRadius: "6px",
-    fontSize: "14px",
-    color: "#374151",
-    background: "#fff",
-    outline: "none",
-    boxSizing: "border-box",
-    fontFamily: "inherit",
+  const handleSave = () => {
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
+    setSaved(true);
+    setCancelled(false);
+    setTimeout(() => setSaved(false), 3000);
   };
 
-  const labelStyle = {
-    display: "block",
-    fontWeight: "600",
-    fontSize: "14px",
-    color: "#1f2937",
-    marginBottom: "6px",
+  const handleClose = () => {
+    setForm({
+      generalPoint: "40",
+      attendancePoint: "5",
+      collaborativeStart: "2024-06-01",
+      collaborativeEnd: "2024-06-15",
+      startTime: "09:15",
+      endTime: "17:00",
+    });
+    setErrors({});
+    setSaved(false);
+    setCancelled(true);
+    setTimeout(() => setCancelled(false), 3000);
   };
 
-  const reqStyle = { color: "#e53935", marginLeft: "2px" };
-
-  const fieldRow = {
-    display: "flex",
-    alignItems: "flex-start",
-    marginBottom: "20px",
-    gap: "24px",
-  };
-
-  const labelCol = {
-    width: "220px",
-    flexShrink: 0,
-    paddingTop: "10px",
-  };
-
-  const inputCol = { flex: 1 };
+  const fields = [
+    { label: "General point", name: "generalPoint", type: "number", required: true },
+    { label: "Attendance point", name: "attendancePoint", type: "number", required: true },
+    { label: "Collaborative point start", name: "collaborativeStart", type: "date", required: true },
+    { label: "Collaborative point end", name: "collaborativeEnd", type: "date", required: true },
+    { label: "Start time", name: "startTime", type: "time", required: true },
+    { label: "End time", name: "endTime", type: "time", required: true },
+  ];
 
   return (
-    <div style={{ background: "#f5f6fa", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif" }}>
-      <div style={{ background: "#fff", borderRadius: "10px", padding: "36px 40px", width: "100%", maxWidth: "720px", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-        
+    <div style={{
+      minHeight: "100vh",
+      background: "#f4f6f9",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "16px",
+      fontFamily: "'Segoe UI', system-ui, sans-serif",
+    }}>
+      <div style={{
+        background: "#ffffff",
+        borderRadius: "12px",
+        boxShadow: "0 2px 20px rgba(0,0,0,0.08)",
+        width: "100%",
+        maxWidth: "680px",
+        padding: "clamp(24px, 5vw, 40px)",
+        position: "relative",
+      }}>
         {/* Title */}
-        <h2 style={{ fontSize: "20px", fontWeight: "700", color: "#1f2937", marginBottom: "28px" }}>
-          Point settings
+        <h2 style={{
+          fontSize: "clamp(18px, 3vw, 22px)",
+          fontWeight: 600,
+          color: "#1a1a2e",
+          marginBottom: "28px",
+          paddingBottom: "16px",
+          borderBottom: "2px solid #f0f0f0",
+          letterSpacing: "0.2px",
+        }}>
+          Point Settings
         </h2>
 
-        {/* General point */}
-        <div style={fieldRow}>
-          <div style={labelCol}>
-            <label style={labelStyle}>General point<span style={reqStyle}>*</span></label>
+        {/* Toast */}
+        {(saved || cancelled) && (
+          <div style={{
+            position: "fixed",
+            top: "24px",
+            right: "24px",
+            zIndex: 1000,
+            background: saved ? "#22c55e" : "#6b7280",
+            color: "#fff",
+            padding: "12px 20px",
+            borderRadius: "8px",
+            fontWeight: 600,
+            fontSize: "14px",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            animation: "slideIn 0.3s ease",
+          }}>
+            <span>{saved ? "✓" : "✕"}</span>
+            {saved ? "Settings saved successfully!" : "Changes cancelled"}
           </div>
-          <div style={inputCol}>
-            <input style={inputStyle} name="generalPoint" value={form.generalPoint} onChange={handleChange} type="number" />
-          </div>
+        )}
+
+        {/* Form Fields */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "20px",
+        }}>
+          {fields.map(({ label, name, type, required }) => (
+            <div key={name} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#374151",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}>
+                {label}
+                {required && <span style={{ color: "#ef4444", fontSize: "13px" }}>*</span>}
+              </label>
+              <input
+                type={type}
+                name={name}
+                value={form[name]}
+                onChange={handleChange}
+                style={{
+                  padding: "10px 14px",
+                  border: errors[name] ? "1.5px solid #ef4444" : "1.5px solid #e5e7eb",
+                  borderRadius: "8px",
+                  fontSize: "15px",
+                  color: "#1f2937",
+                  background: "#fafafa",
+                  outline: "none",
+                  transition: "border-color 0.2s, box-shadow 0.2s",
+                  width: "80%",
+                  boxSizing: "border-box",
+                  cursor: "pointer",
+                }}
+                onFocus={e => e.target.style.borderColor = "#3b82f6"}
+                onBlur={e => e.target.style.borderColor = errors[name] ? "#ef4444" : "#e5e7eb"}
+              />
+              {errors[name] && (
+                <span style={{ fontSize: "12px", color: "#ef4444" }}>{errors[name]}</span>
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Attendance point */}
-        <div style={fieldRow}>
-          <div style={labelCol}>
-            <label style={labelStyle}>Attendance point<span style={reqStyle}>*</span></label>
-          </div>
-          <div style={inputCol}>
-            <input style={inputStyle} name="attendancePoint" value={form.attendancePoint} onChange={handleChange} type="number" />
-          </div>
-        </div>
-
-        {/* Collaborative point start */}
-        <div style={fieldRow}>
-          <div style={labelCol}>
-            <label style={labelStyle}>Collaborative point<br />start<span style={reqStyle}>*</span></label>
-          </div>
-          <div style={inputCol}>
-            <input style={inputStyle} name="collaborativeStart" value={form.collaborativeStart} onChange={handleChange} type="text" />
-          </div>
-        </div>
-
-        {/* Collaborative point end */}
-        <div style={fieldRow}>
-          <div style={labelCol}>
-            <label style={labelStyle}>Collaborative point end<span style={reqStyle}>*</span></label>
-          </div>
-          <div style={inputCol}>
-            <input style={inputStyle} name="collaborativeEnd" value={form.collaborativeEnd} onChange={handleChange} type="text" />
-          </div>
-        </div>
-
-        {/* Start time */}
-        <div style={fieldRow}>
-          <div style={labelCol}>
-            <label style={labelStyle}>Start time<span style={reqStyle}>*</span></label>
-          </div>
-          <div style={inputCol}>
-            <input style={inputStyle} name="startTime" value={form.startTime} onChange={handleChange} type="text" />
-          </div>
-        </div>
-
-        {/* End time */}
-        <div style={fieldRow}>
-          <div style={labelCol}>
-            <label style={labelStyle}>End time<span style={reqStyle}>*</span></label>
-          </div>
-          <div style={inputCol}>
-            <input style={inputStyle} name="endTime" value={form.endTime} onChange={handleChange} type="text" />
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "8px" }}>
+        {/* Action Buttons */}
+        <div style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: "12px",
+          marginTop: "32px",
+          paddingTop: "20px",
+          borderTop: "1px solid #f0f0f0",
+          flexWrap: "wrap",
+        }}>
           <button
             onClick={handleClose}
-            style={{ padding: "9px 22px", borderRadius: "6px", border: "none", background: "#e53935", color: "#fff", fontWeight: "600", fontSize: "14px", cursor: "pointer" }}
+            style={{
+              padding: "10px 28px",
+              borderRadius: "7px",
+              border: "none",
+              background: "#ef4444",
+              color: "#fff",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "background 0.2s, transform 0.1s",
+              minWidth: "90px",
+            }}
+            onMouseEnter={e => e.target.style.background = "#dc2626"}
+            onMouseLeave={e => e.target.style.background = "#ef4444"}
+            onMouseDown={e => e.target.style.transform = "scale(0.97)"}
+            onMouseUp={e => e.target.style.transform = "scale(1)"}
           >
             Close
           </button>
           <button
             onClick={handleSave}
-            style={{ padding: "9px 22px", borderRadius: "6px", border: "none", background: "#1976d2", color: "#fff", fontWeight: "600", fontSize: "14px", cursor: "pointer" }}
+            style={{
+              padding: "10px 28px",
+              borderRadius: "7px",
+              border: "none",
+              background: "#3b82f6",
+              color: "#fff",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "background 0.2s, transform 0.1s",
+              minWidth: "90px",
+            }}
+            onMouseEnter={e => e.target.style.background = "#2563eb"}
+            onMouseLeave={e => e.target.style.background = "#3b82f6"}
+            onMouseDown={e => e.target.style.transform = "scale(0.97)"}
+            onMouseUp={e => e.target.style.transform = "scale(1)"}
           >
             Save
           </button>
         </div>
-
       </div>
+
+      <style>{`
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          cursor: pointer; opacity: 0.6;
+        }
+        @media (max-width: 400px) {
+          button { width: 100%; }
+        }
+      `}</style>
     </div>
   );
-}
+};
+
+export default PointSettingsForm;
