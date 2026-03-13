@@ -383,7 +383,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           <Dropdown label="Reward Points" icon={<Award size={18} />} open={rewardOpen} setOpen={setRewardOpen}>
             <SubMenu to="/reward/settings" label="Point Settings" onClose={onClose} />
             <SubMenu to="/reward/categories" label="Point Categories" onClose={onClose} />
-            <SubMenu to="/reward/management" label="Management Points" onClose={onClose} />
+            {/* <SubMenu to="/reward/management" label="Management Points" onClose={onClose} /> */}
             <SubMenu to="/reward/collaborative" label="Collaborative Points" onClose={onClose} />
             <SubMenu to="/reward/attendance" label="Attendance Points" onClose={onClose} />
             <SubMenu to="/reward/employee" label="Employee Points" onClose={onClose} />
